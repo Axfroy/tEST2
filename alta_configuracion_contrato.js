@@ -57,22 +57,28 @@ $(document).ready(function () {
 	$('#IN_CUIT').mask('99-99999999-9');
 	$('#formConfigurador :input').prop('disabled', true);
 	$('#btnGuardarConf').prop('disabled', true);
-	$('#IN_NUMEROCBU').mask('?9999999999999999999999');
-	$('#TARJETANUMERO').mask('?999999999999999999');
+	// $('#IN_NUMEROCBU').mask('?9999999999999999999999');
+	// $('#TARJETANUMERO').mask('?999999999999999999');
 	$('#IN_FORMAPAGO').on('change', function () {
 		if ($(this).val() === idEfectivo) {
 			$('#IN_TARJETATIPO').val('');
-			$('#IN_TARJETANUMERO').val('');
+			$('#TARJETANUMERO').val('');
 			$('.tarjeta-group').hide();
 			$('.cbu-group').hide();
 		}
 		if ($(this).val() === idCuentaCorriente) {
+			$('#IN_NUMEROCBU').attr('required', 'True');
+			$('#TARJETANUMERO').removeAttr('required');
 			$('.cbu-group').show();
 			$('.tarjeta-group').hide();
+			cbuInputValidation();
 		}
 		if ($(this).val() === idDebito) {
+			$('#TARJETANUMERO').attr('required', 'True');
+			$('#IN_NUMEROCBU').removeAttr('required');
 			$('.cbu-group').hide();
 			$('.tarjeta-group').show();
+			cardNumberInputValidation();
 		}
 		if ($(this).val() === '') {
 			$('.tarjeta-group').hide();
@@ -1073,6 +1079,18 @@ function submitAltaConfirm() {
 		}
 	}
 
+	// Validaciones de pago
+	console.log('isValidCard', isValidCard);
+	if ($('#IN_FORMAPAGO').val() === idCuentaCorriente && !isValidCbu) {
+		requiredComplete = false;
+		return;
+	}
+	// Validaciones de pago
+	if ($('#IN_FORMAPAGO').val() === idDebito && !isValidCard) {
+		requiredComplete = false;
+		return;
+	}
+
 	//verifico si no cargo mail
 	var checkBox = document.getElementById('checkMail');
 	if (!checkBox.checked) {
@@ -1084,8 +1102,7 @@ function submitAltaConfirm() {
 		}
 	}
 	var IN_USUARIO = $('#usu').val();
-	console.log(IN_USUARIO);
-
+	console.log('IN_USUARIO', IN_USUARIO);
 	if (requiredComplete) {
 		$('#mdload').modal('show');
 		$.post('solicitudes_editar_crear.php', postData).done(function (data) {
@@ -1228,7 +1245,7 @@ $('#InstaFact').livequery(function () {
 
 $('#IN_FORMAPAGO').livequery(function () {
 	$(this).on('change', function () {
-		$('#IN_TARJETATIPO').removeAttr('disabled');
+		// $('#IN_TARJETATIPO').removeAttr('disabled');
 		$('#TARJETANUMERO').removeAttr('disabled');
 		if ($(this).find('option:selected').text().trim() === 'Efectivo') {
 			$('#IN_TARJETATIPO').attr('disabled', 'disabled');
@@ -1256,40 +1273,183 @@ $('#IN_MAIL').livequery(function () {
 	});
 });
 
-function ValidateCard() {
-	var cardInput = $('#TARJETANUMERO');
-	if (!valid_credit_card(cardInput.val())) {
-		cardInput.parents('.control-group').removeClass('error');
-		cardInput.parents('.control-group').removeClass('success');
-		cardInput.parents('.control-group').addClass('error');
-		swal(
-			'Atención',
-			'El número de tarjeta ingresado no parece ser válido',
-			'warning'
-		);
-	} else {
-		cardInput.parents('.control-group').removeClass('error');
-		cardInput.parents('.control-group').removeClass('success');
-		cardInput.parents('.control-group').addClass('success');
-		swal('', 'El número de tarjeta ingresado es válido', 'success');
+//--------------------------------------------------
+// CREDIT CARD VALIDATIONS
+var visa = new RegExp('^4[0-9]{12}(?:[0-9]{3})?$');
+var visaFormat = new RegExp('^4[0-9]');
+
+var americanExpress = new RegExp('^3[47][0-9]{13}$');
+var americanExpressFormat = new RegExp('^3[47]');
+
+var masterCard = new RegExp(
+	'^(?:5[1-5][0-9]{2}|222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}$'
+);
+var masterCardFormat = new RegExp(
+	'^(?:5[1-5][0-9]{2}|222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)'
+);
+
+var cabal = new RegExp('^(5896|6042){1}[0-9]{12}$');
+var cabalFormat = new RegExp('^(5896|6042)');
+
+isValidCard = false;
+
+function cardNumberInputValidation() {
+	var cardSelected = document.querySelector('#IN_TARJETATIPO');
+	$('#TARJETANUMERO').on('keyup', function (e) {
+		cardInputFormatter(e);
+		cardTypeFormatter($('#TARJETANUMERO').val(), cardSelected);
+		validateCard();
+	});
+}
+
+function validateCardNumber(creditCardNumber) {
+	var stringNum = creditCardNumber.toString();
+	var reversedNum = stringNum.split('').reverse();
+	var sum = 0;
+	for (let i = 0; i < reversedNum.length; i++) {
+		var digit = parseInt(reversedNum[i]);
+		if (i % 2 !== 0) {
+			var doubledDigit = digit * 2;
+			sum += doubledDigit > 9 ? doubledDigit - 9 : doubledDigit;
+		} else {
+			sum += digit;
+		}
+	}
+	var response = sum % 10 === 0;
+	return response;
+}
+
+function checkCardType(cardType, creditCardNumber) {
+	switch (true) {
+		case cardType == '{9F7B09AE-7ED6-42E7-BB2C-68B6507EC320}' &&
+			visa.test(creditCardNumber) &&
+			validateCardNumber(creditCardNumber):
+		case cardType == '{D91126A0-F160-4AD6-A303-07CF798143B4}' &&
+			americanExpress.test(creditCardNumber) &&
+			validateCardNumber(creditCardNumber):
+		case cardType == '{DB4F4E9C-E06F-4F5B-BEB5-FF86F9B47FB7}' &&
+			masterCard.test(creditCardNumber) &&
+			validateCardNumber(creditCardNumber):
+		case cardType == '{0C0CF4E3-A0C8-4A56-BE64-517659629094}' &&
+			cabal.test(creditCardNumber) &&
+			validateCardNumber(creditCardNumber):
+			return true;
+		default:
+			return false;
 	}
 }
 
-function ValidateCBU() {
-	var cbu = $('#IN_NUMEROCBU');
-	if (cbu.val().length !== 22) {
-		swal(
-			'Atención',
-			'El número de CBU ingresado no parece ser válido',
-			'warning'
-		);
-	} else {
-		if (cbu.val().substring(0, 5) === '00000') {
-			swal('Atención', 'El número no puede ser un CVU.', 'warning');
-		} else {
-			swal('', 'El número de cbu ingresado es válido', 'success');
-		}
+function cardTypeFormatter(creditCardNumber, cardElement) {
+	switch (true) {
+		case visaFormat.test(creditCardNumber):
+			cardElement[5].selected = true;
+			break;
+		case americanExpressFormat.test(creditCardNumber):
+			cardElement[1].selected = true;
+			break;
+		case masterCardFormat.test(creditCardNumber):
+			cardElement[2].selected = true;
+			cardElement[2].text = 'MasterCard';
+			break;
+		case cabalFormat.test(creditCardNumber):
+			cardElement[3].selected = true;
+			break;
+		default:
+			cardElement[0].selected = true;
+			break;
 	}
+}
+
+function cardInputFormatter(cardTextValue) {
+	if (americanExpressFormat.test($('#TARJETANUMERO').val())) {
+		cardTextValue.target.value = cardTextValue.target.value
+			.replace(/[^\d]/g, '')
+			.replace(/(\d{4})\s*(\d{6})?\s*(\d{5})?/, '$1 $2 $3')
+			.replace(/\s\s/g, ' ');
+		document.querySelector('#TARJETANUMERO').maxLength = '17';
+	} else {
+		cardTextValue.target.value = cardTextValue.target.value
+			.replace(/[^\d]/g, '')
+			.replace(/(.{4})/g, '$1 ')
+			.replace(/^\s+|\s+$/gm, '');
+		document.querySelector('#TARJETANUMERO').maxLength = '19';
+	}
+}
+
+function validateCard() {
+	var cardTypeSelected = $('[name=IN_TARJETATIPO] option:selected')
+		.val()
+		.trim();
+	var cardNumber = $('#TARJETANUMERO').val().replace(/\s+/g, '');
+	var validCard = checkCardType(cardTypeSelected, cardNumber);
+	if (validCard) {
+		showSuccessInput($('#TARJETANUMERO'));
+		isValidCard = true;
+	}
+	if (!validCard) {
+		showErrorInput($('#TARJETANUMERO'));
+		isValidCard = false;
+	}
+}
+
+// --------------------
+//Validacion de CBU
+var cbu = document.querySelector('#IN_NUMEROCBU');
+isValidCbu = false;
+
+function cbuInputValidation() {
+	document.querySelector('#IN_NUMEROCBU').maxLength = '22';
+	$('#IN_NUMEROCBU').on('keyup', (e) => {
+		e.target.value = e.target.value.replace(/[^\d]/, '');
+		validateCbu();
+	});
+}
+
+function validateCbu() {
+	var cbu = $('#IN_NUMEROCBU');
+	if (validarCBU(cbu.val())) {
+		showSuccessInput(cbu);
+		isValidCbu = true;
+	} else {
+		showErrorInput(cbu);
+		isValidCbu = false;
+	}
+}
+
+function validarCBU(cbu) {
+	var banco = cbu.substr(0, 3);
+	if (cbu.length != 22) return false;
+
+	var arr = cbu.split('');
+	if (arr[7] != getDigitoVerificador(arr, 0, 6)) return false;
+	if (arr[21] != getDigitoVerificador(arr, 8, 20)) return false;
+	if (banco === '000') return false;
+
+	return true;
+}
+
+function getDigitoVerificador(numero, posInicial, posFinal) {
+	ponderador = Array.from([3, 1, 7, 9]);
+	suma = 0;
+	j = 0;
+	for (var i = posFinal; i >= posInicial; i--) {
+		suma = suma + numero[i] * ponderador[j % 4];
+		j++;
+	}
+	return (10 - (suma % 10)) % 10;
+}
+
+// Error classes
+function showErrorInput(element) {
+	element.parents('.control-group').removeClass('error');
+	element.parents('.control-group').removeClass('success');
+	element.parents('.control-group').addClass('error');
+}
+
+function showSuccessInput(element) {
+	element.parents('.control-group').removeClass('error');
+	element.parents('.control-group').removeClass('success');
+	element.parents('.control-group').addClass('success');
 }
 
 //agenda instalacion
