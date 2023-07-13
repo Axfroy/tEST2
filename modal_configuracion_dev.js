@@ -84,7 +84,7 @@ $('#modalConfg tr').livequery(function () {
 			parameters = JSON.parse(parameters);
 
 			chkCantResponse = $.ajax({
-				url: '_ajax_configuracion_contrato_dev.php?sp=cantidad',
+				url: '_ajax_configuracion_contrato.php?sp=cantidad',
 				type: 'POST',
 				data: {
 					id: idServicio
@@ -230,7 +230,7 @@ function getPreceOblg(parameters) {
 	});
 
 	preceRequest = $.ajax({
-		url: '_ajax_configuracion_contrato_dev.php?sp=precedencia',
+		url: '_ajax_configuracion_contrato.php?sp=precedencia',
 		type: 'POST',
 		data: parameters
 	});
@@ -240,7 +240,7 @@ function getPreceOblg(parameters) {
 
 		obligRequest = $.ajax({
 			url:
-				'_ajax_configuracion_contrato_dev.php?sp=obligacion&cant=' +
+				'_ajax_configuracion_contrato.php?sp=obligacion&cant=' +
 				cantPOP +
 				'&rownum=' +
 				rownumber,
@@ -274,7 +274,7 @@ function appendOblig(oblightml) {
 
 function getPrice(id, cant, callback) {
 	priceRequest = $.ajax({
-		url: '_ajax_configuracion_contrato_dev.php?sp=precio',
+		url: '_ajax_configuracion_contrato.php?sp=precio',
 		type: 'POST',
 		data: {
 			IN_CODIGO: id,
@@ -301,14 +301,17 @@ confirmSaveHTML = '';
 
 function closeModal(action, clienteID, usuarioID) {
 	if (action === 'Save') {
+		console.log('aca va a guardar');
 		confirmSaveHTML = $('.confirmSave').html();
 		$('.confirmSave button').hide();
 		$('.confirmSave .modal-body').append('<img src="img/ajax-loader.gif">');
 		$('.confirmSave .modal-title').html('Guardando...');
 		console.log('Saving...');
 		console.log(sessionStorage.localidad);
+		console.log('aca llama a saveconfchanges');
 		status = saveConfChanges(clienteID, usuarioID);
 		//alert('status: '.status);
+
 		if (status == 0) {
 			$('.confirmSave img').hide();
 			$('#cnfSaveClose').show();
@@ -526,7 +529,7 @@ function modalOnLoad(clienteID, listaPrecio) {
 					);
 				} else {
 					var getPendiente = $.ajax({
-						url: '_ajax_configuracion_contrato_dev.php?sp=getpendiente',
+						url: '_ajax_configuracion_contrato.php?sp=getpendiente',
 						type: 'POST',
 						data: {
 							IN_CODIGO: '"' + clienteID + '"'
@@ -583,9 +586,8 @@ function mdlDescBehaviors(action, usuarioSector) {
 				'<img src="img/ajax-loader.gif" style=" position: relative; left: 50%; top: 50%;margin-left: -15px;">'
 			);
 
-			console.log('mdldscJSON', mdldscJSON);
 			var ajaxHandler = $.ajax({
-				url: '_ajax_configuracion_contrato_dev.php?sp=descuentos',
+				url: '_ajax_configuracion_contrato.php?sp=descuentos',
 				type: 'POST',
 				data: mdldscJSON
 			});
@@ -698,7 +700,7 @@ function mdlRetBehaviors(action, usuarioSector) {
 			);
 
 			var ajaxHandler = $.ajax({
-				url: '_ajax_configuracion_contrato_dev.php?sp=descuentos',
+				url: '_ajax_configuracion_contrato.php?sp=descuentos',
 				type: 'POST',
 				data: mdldscJSON
 			});
@@ -798,6 +800,7 @@ function btnRetencion(action, usuarioSector) {
 
 var hasOnlyDesc = true;
 function saveConfChanges(clienteID, usuarioID) {
+	console.log('aca llama verifica fechas');
 	var error = 0;
 
 	IN_CLIENTE = clienteID;
@@ -826,10 +829,10 @@ function saveConfChanges(clienteID, usuarioID) {
 	};
 
 	parsedParameters = oParams;
-	console.log(oParams);
+	console.log(parsedParameters + 'aca pasa la cabecera');
 
 	cabeceraHandler = $.ajax({
-		url: '_ajax_configuracion_contrato_dev.php?sp=insertcabecera',
+		url: '_ajax_configuracion_contrato.php?sp=insertcabecera',
 		type: 'POST',
 		data: parsedParameters
 	});
@@ -840,12 +843,11 @@ function saveConfChanges(clienteID, usuarioID) {
 		$('#fechainicio').val('');
 		$('#fechafin').val('');
 		jsonResponse = JSON.parse(response);
-		console.log(jsonResponse);
+
 		if (jsonResponse.ID_MOD != '') {
 			var ID_CONT_MOD = jsonResponse.ID_MOD;
 			console.log('Cabecera Insertada');
-			console.log(response);
-			console.log('ID_CONT_MOD', ID_CONT_MOD);
+			console.log(JSON.parse(response));
 		} else {
 			error = 1;
 		}
@@ -882,24 +884,26 @@ function saveConfChanges(clienteID, usuarioID) {
 				console.warn(ex.message);
 			}
 			arrayInsert.push(toInsert);
-			console.log('arrayInsert', arrayInsert);
 		});
 
+		console.log(toInsert + 'aca pasa los detalles');
 		detalleHandler = $.ajax({
-			url: '_ajax_configuracion_contrato_dev.php?sp=insertdetalle',
+			url: '_ajax_configuracion_contrato.php?sp=insertdetalle',
 			type: 'POST',
 			data: {
 				stringified: JSON.stringify(arrayInsert)
 			}
 		});
-
+		console.log(stringified + 'aca chekea detalles');
 		//debugger;
 		detalleHandler.done(function (response) {
+			console.log(response);
+
 			console.log('Detalle Insertado');
 			oParams = { IN_ID: ID_CONT_MOD };
 			console.log(oParams);
 			$.ajax({
-				url: '_ajax_configuracion_contrato_dev.php?sp=check_insertDetalle',
+				url: '_ajax_configuracion_contrato.php?sp=check_insertDetalle',
 				type: 'POST',
 				data: oParams,
 				success: function (data) {
@@ -913,7 +917,7 @@ function saveConfChanges(clienteID, usuarioID) {
 						error = 0;
 					} else {
 						$.ajax({
-							url: '_ajax_configuracion_contrato_dev.php?sp=set_error_cabecera',
+							url: '_ajax_configuracion_contrato.php?sp=set_error_cabecera',
 							type: 'POST',
 							data: oParams
 						});
