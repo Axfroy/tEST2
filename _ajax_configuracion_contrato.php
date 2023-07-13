@@ -151,7 +151,8 @@ switch ($sp) {
         $jsonPost = json_decode($_POST["stringified"]);
         foreach ($jsonPost as $object) {
             //$oraDB->addProcedure("RECLAMOS", "SP_ADM_CONFIGURADOR_INSERTDET"); este se cambio por el 2 que agrega fecha de inicio y fin manuealmente
-            $oraDB->addProcedure("RECLAMOS", "SP_ADM_CONFIGURADOR_INSERTDET2");
+            // $oraDB->addProcedure("RECLAMOS", "SP_ADM_CONFIGURADOR_INSERTDET2");
+            $oraDB->addProcedure("RECLAMOS", "SP_ADM_CONFIGURADOR_INSERTDET_DEV");
             foreach ($object as $key => $value) {
                 $oraDB->addParameterPWDP($key, $value, "IN");
             }
@@ -167,7 +168,7 @@ switch ($sp) {
         echo "<script type='text/javascript'>alert($jsonPost);</script>";
         var_dump($jsonPost);
         foreach ($jsonPost as $object) {
-            $oraDB->addProcedure("RECLAMOS", "SP_ADM_CONFIGURADOR_ACONTRATO");
+            $oraDB->addProcedure("RECLAMOS", "SP_ADM_CONFIGURADOR_ACONTRATO_DEV");
             foreach ($object as $key => $value) {
                 $oraDB->addParameterPWDP($key, $value, "IN");
             }
