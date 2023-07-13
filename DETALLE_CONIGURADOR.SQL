@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE RECLAMOS.SP_ADM_CONFIGURADOR_INSERTDET_DEV
+CREATE OR REPLACE PROCEDURE RECLAMOS.SP_ADM_CONFIGURADOR_INSERTDET2
 (IN_IDALTA              IN VARCHAR2,
 IN_CODIGOSERVICIO       IN VARCHAR2,
 IN_RUBRO                IN VARCHAR2,
@@ -78,7 +78,7 @@ BEGIN
                                v_ORDEN:= v_ORDEN + 1;
                                INSERT INTO RECLAMOS.ITEMS_CONTRATO_ANT (ID_ALTACLIENTEPOTENCIAL, SERVICIO, RUBRO, ORDEN, DESCRIPCION,ID_ITEM_CONTRATO_ANT,ID_DESCUENTO,FECHAINICIO,FECHAFIN,MONTO,DURACION,PORCENTAJE)
                               VALUES
-                              (IN_IDALTA, '03000115'  ,'TVCABLE',v_ORDEN ,'DESCUENTOS (Item: '||TRIM(TO_CHAR(v_itemadescontar,'00'))||', Dur.: 13 meses, Porc.: 00100%, Monto: 00000, Servicio: 03000310 - TRIMI)',IN_ITEM_CONTRATO_ANT,'{FCE00D5C-D354-4D15-8993-784526C49099}',TO_CHAR(ADD_MONTHS(SYSDATE,0),'yyyymmdd'),TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE,'MM')-1,(0 + 3)),'yyyymmdd'),'0','3','100' );
+                              (IN_IDALTA, '03000115'  ,'TVCABLE',v_ORDEN ,'DESCUENTOS (Item: '||TRIM(TO_CHAR(v_itemadescontar,'00'))||', Dur.: 13 meses, Porc.: 00100%, Monto: 00000, Servicio: 03000310 - TRIMI)',IN_ITEM_CONTRATO_ANT,'{FCE00D5C-D354-4D15-8993-784526C49099}',TO_CHAR(ADD_MONTHS(SYSDATE,0),'yyyymmdd'),TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE,'MM')-1,(0 + 13)),'yyyymmdd'),'0','13','100' );
                             
                          END IF;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
                             
@@ -91,7 +91,7 @@ BEGIN
                              v_ORDEN:= v_ORDEN + 1;
                                INSERT INTO RECLAMOS.ITEMS_CONTRATO_ANT (ID_ALTACLIENTEPOTENCIAL, SERVICIO, RUBRO, ORDEN, DESCRIPCION,ID_ITEM_CONTRATO_ANT,ID_DESCUENTO,FECHAINICIO,FECHAFIN,MONTO,DURACION,PORCENTAJE)
                               VALUES
-                              (IN_IDALTA, '03000115'  ,'TVCABLE',v_ORDEN ,'DESCUENTOS (Item: '||TRIM(TO_CHAR(v_itemadescontar,'00'))||', Dur.: 03 meses, Porc.: 00050%, Monto: 00000, Servicio: 03000145 - HBO HD)',IN_ITEM_CONTRATO_ANT,'{5C437A9C-98FD-4770-BA37-BA166C946906}',TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE,'MM'),(2+3)),'yyyymmdd'),TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE,'MM')-1,(2 + 3)),'yyyymmdd'),'0','3','50' );
+                              (IN_IDALTA, '03000115'  ,'TVCABLE',v_ORDEN ,'DESCUENTOS (Item: '||TRIM(TO_CHAR(v_itemadescontar,'00'))||', Dur.: 03 meses, Porc.: 00050%, Monto: 00000, Servicio: 03000145 - HBO HD)',IN_ITEM_CONTRATO_ANT,'{5C437A9C-98FD-4770-BA37-BA166C946906}',TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE,'MM'),3),'yyyymmdd'),TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE,'MM')-1,(2 + 3)),'yyyymmdd'),'0','3','50' );
                          END IF;    
                             v_ORDEN:= v_ORDEN + 1;
                           COMMIT;
